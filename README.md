@@ -1,6 +1,16 @@
 # Agent Runtime Framework
 
+[![PyPI version](https://badge.fury.io/py/agent-runtime-framework.svg)](https://badge.fury.io/py/agent-runtime-framework)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Python framework for building **journey-based conversational agents** with LLMs. Design multi-step conversational experiences where agents guide users through structured processes with state management, tool execution, and flexible routing.
+
+## Recent Updates
+
+| Version | Date | Changes |
+|---------|------|---------|
+| **0.1.0** | 2025-01-14 | Initial release - JourneyAgent, state management, Django adapter |
 
 ## 🎯 What is a Journey-Based Agent?
 
