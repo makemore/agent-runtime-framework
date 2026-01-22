@@ -211,6 +211,91 @@ You typically don't use the Executor directly - `JourneyAgent` uses it internall
 
 ## 🔧 Advanced Features
 
+### Debug Mode
+
+The framework supports **debug mode** for development and **production mode** for deployment:
+
+**Debug Mode:**
+- Exceptions propagate immediately (no swallowing)
+- Verbose logging (DEBUG level)
+- Clear error messages and stack traces
+- **Perfect for development and troubleshooting**
+
+**Production Mode:**
+- Exceptions are caught and returned as error messages
+- Standard logging (INFO level)
+- Graceful error handling
+- **Safe for production deployments**
+
+```python
+from agent_runtime_framework import configure
+
+# Enable debug mode (development)
+configure(debug=True)
+
+# Enable production mode
+configure(debug=False)
+
+# Or use environment variable
+# AGENT_RUNTIME_DEBUG=1 python your_app.py
+```
+
+**Example - Debug mode catches errors immediately:**
+
+```python
+from agent_runtime_framework import configure, JourneyAgent
+
+# In debug mode, exceptions propagate
+configure(debug=True)
+
+class MyTools(BaseJourneyTools[MyState]):
+    async def process_data(self, data: str) -> str:
+        # This will raise immediately in debug mode
+        result = int(data)  # ValueError if data is not a number
+        return f"Processed: {result}"
+
+# When this tool is called with invalid data, you'll get:
+# ValueError: invalid literal for int() with base 10: 'abc'
+# With full stack trace!
+```
+
+**Example - Production mode handles errors gracefully:**
+
+```python
+# In production mode, exceptions are caught
+configure(debug=False)
+
+# Same tool, but now returns:
+# "Error executing process_data: invalid literal for int() with base 10: 'abc'"
+# The agent continues running and can handle the error
+```
+
+**Configuration options:**
+
+```python
+from agent_runtime_framework import configure, FrameworkConfig
+
+# Fine-grained control
+configure(
+    debug=True,                      # Enable debug mode
+    swallow_tool_exceptions=False,   # Don't catch exceptions
+    log_level="DEBUG"                # Verbose logging
+)
+
+# Or create a custom config
+config = FrameworkConfig(
+    debug=True,
+    swallow_tool_exceptions=False,
+    log_level="DEBUG"
+)
+from agent_runtime_framework import set_config
+set_config(config)
+
+# Environment variables
+# AGENT_RUNTIME_DEBUG=1          # Enable debug mode
+# AGENT_RUNTIME_LOG_LEVEL=DEBUG  # Set log level
+```
+
 ### Intent Routing
 
 Route users to different journeys based on their intent:

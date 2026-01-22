@@ -4,6 +4,16 @@ Agent Runtime Framework
 A framework for building journey-based conversational agents.
 """
 
+# Configuration
+from agent_runtime_framework.config import (
+    FrameworkConfig,
+    get_config,
+    set_config,
+    configure,
+    is_debug,
+    should_swallow_exceptions,
+)
+
 # Core components
 from agent_runtime_framework.state import (
     BaseJourneyState,
@@ -54,6 +64,13 @@ from agent_runtime_framework.router import (
 __version__ = "0.1.0"
 
 __all__ = [
+    # Configuration
+    "FrameworkConfig",
+    "get_config",
+    "set_config",
+    "configure",
+    "is_debug",
+    "should_swallow_exceptions",
     # State
     "BaseJourneyState",
     "StateSerializer",

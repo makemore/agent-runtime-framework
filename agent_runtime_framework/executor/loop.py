@@ -16,6 +16,7 @@ import logging
 
 from agent_runtime_framework.agents.base import AgentMessage, LLMClient
 from agent_runtime_framework.tools.schema import ToolSchema
+from agent_runtime_framework.config import should_swallow_exceptions
 
 
 logger = logging.getLogger(__name__)
@@ -96,7 +97,7 @@ class CallableToolExecutor:
         """Execute a tool by name."""
         if name not in self._tools:
             return f"Error: Unknown tool '{name}'"
-        
+
         tool_fn = self._tools[name]
         try:
             result = tool_fn(**arguments)
@@ -105,6 +106,10 @@ class CallableToolExecutor:
                 result = await result
             return str(result)
         except Exception as e:
+            # In debug mode, let exceptions propagate
+            if not should_swallow_exceptions():
+                raise
+
             logger.exception(f"Error executing tool {name}")
             return f"Error executing {name}: {str(e)}"
 
@@ -129,7 +134,7 @@ class MethodToolExecutor:
         """Execute a tool method by name."""
         if not hasattr(self._tools, name):
             return f"Error: Unknown tool '{name}'"
-        
+
         method = getattr(self._tools, name)
         try:
             result = method(**arguments)
@@ -138,6 +143,10 @@ class MethodToolExecutor:
                 result = await result
             return str(result)
         except Exception as e:
+            # In debug mode, let exceptions propagate
+            if not should_swallow_exceptions():
+                raise
+
             logger.exception(f"Error executing tool {name}")
             return f"Error executing {name}: {str(e)}"
 

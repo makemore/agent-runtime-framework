@@ -47,13 +47,36 @@ class TestCallableToolExecutor:
     
     @pytest.mark.asyncio
     async def test_execute_error_handling(self):
+        from agent_runtime_framework.config import configure
+
+        # Production mode - should catch exceptions
+        configure(debug=False)
+
         def failing_tool():
             raise ValueError("Something went wrong")
-        
+
         executor = CallableToolExecutor({"fail": failing_tool})
         result = await executor.execute("fail", {})
         assert "Error" in result
         assert "Something went wrong" in result
+
+    @pytest.mark.asyncio
+    async def test_execute_error_propagates_in_debug(self):
+        from agent_runtime_framework.config import configure
+
+        # Debug mode - should propagate exceptions
+        configure(debug=True)
+
+        def failing_tool():
+            raise ValueError("Debug mode error")
+
+        executor = CallableToolExecutor({"fail": failing_tool})
+
+        with pytest.raises(ValueError, match="Debug mode error"):
+            await executor.execute("fail", {})
+
+        # Reset to production mode for other tests
+        configure(debug=False)
 
 
 class TestMethodToolExecutor:
@@ -73,10 +96,45 @@ class TestMethodToolExecutor:
     async def test_execute_unknown_method(self):
         class Tools:
             pass
-        
+
         executor = MethodToolExecutor(Tools())
         result = await executor.execute("unknown", {})
         assert "Unknown tool" in result
+
+    @pytest.mark.asyncio
+    async def test_execute_error_handling(self):
+        from agent_runtime_framework.config import configure
+
+        # Production mode - should catch exceptions
+        configure(debug=False)
+
+        class Tools:
+            def failing_method(self):
+                raise RuntimeError("Method failed")
+
+        executor = MethodToolExecutor(Tools())
+        result = await executor.execute("failing_method", {})
+        assert "Error" in result
+        assert "Method failed" in result
+
+    @pytest.mark.asyncio
+    async def test_execute_error_propagates_in_debug(self):
+        from agent_runtime_framework.config import configure
+
+        # Debug mode - should propagate exceptions
+        configure(debug=True)
+
+        class Tools:
+            def failing_method(self):
+                raise RuntimeError("Debug mode method error")
+
+        executor = MethodToolExecutor(Tools())
+
+        with pytest.raises(RuntimeError, match="Debug mode method error"):
+            await executor.execute("failing_method", {})
+
+        # Reset to production mode for other tests
+        configure(debug=False)
 
 
 class TestExecutor:
