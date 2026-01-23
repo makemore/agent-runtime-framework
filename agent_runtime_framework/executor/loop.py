@@ -1,11 +1,14 @@
 """
 Core execution loop for agents.
 
-The Executor handles the main agent loop:
+The LLMExecutor handles the main agent loop:
 1. Call LLM with messages and tools
 2. If LLM returns tool calls, execute them
 3. Add tool results to messages
 4. Repeat until LLM returns text or max iterations reached
+
+Note: This is different from agent_runtime_core.steps.StepExecutor,
+which is for multi-step workflows with checkpointing.
 """
 
 from abc import ABC, abstractmethod
@@ -23,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class ExecutorConfig:
+class LLMExecutorConfig:
     """
-    Configuration for the executor.
-    
+    Configuration for the LLM executor.
+
     Attributes:
         max_iterations: Maximum tool call iterations
         terminal_tools: Tool names that end the loop immediately
@@ -37,6 +40,10 @@ class ExecutorConfig:
     terminal_tools: set[str] = field(default_factory=set)
     require_tool_call: bool = False
     stop_on_text: bool = True
+
+
+# Backwards compatibility alias
+ExecutorConfig = LLMExecutorConfig
 
 
 @dataclass
@@ -151,36 +158,38 @@ class MethodToolExecutor:
             return f"Error executing {name}: {str(e)}"
 
 
-class Executor:
+class LLMExecutor:
     """
-    Core execution loop for agents.
-    
+    Core execution loop for LLM-based agents with tool calling.
+
     Handles the LLM interaction and tool execution loop.
-    
+    This is different from agent_runtime_core.steps.StepExecutor,
+    which is for multi-step workflows with checkpointing.
+
     Example:
-        executor = Executor(
+        executor = LLMExecutor(
             llm_client=my_llm,
             tool_executor=MethodToolExecutor(my_tools),
-            config=ExecutorConfig(max_iterations=5),
+            config=LLMExecutorConfig(max_iterations=5),
         )
-        
+
         result = await executor.run(
             messages=[{"role": "user", "content": "Hello"}],
             tools=[my_tool_schema],
             system_prompt="You are a helpful assistant.",
         )
     """
-    
+
     def __init__(
         self,
         llm_client: LLMClient,
         tool_executor: Optional[ToolExecutor] = None,
-        config: Optional[ExecutorConfig] = None,
+        config: Optional[LLMExecutorConfig] = None,
         hooks: Optional["ExecutorHooks"] = None,
     ):
         """
-        Initialize the executor.
-        
+        Initialize the LLM executor.
+
         Args:
             llm_client: LLM client for generating responses
             tool_executor: Executor for running tools
@@ -189,9 +198,9 @@ class Executor:
         """
         self.llm_client = llm_client
         self.tool_executor = tool_executor
-        self.config = config or ExecutorConfig()
+        self.config = config or LLMExecutorConfig()
         self.hooks = hooks
-    
+
     async def run(
         self,
         messages: list[dict[str, Any]],
@@ -347,3 +356,6 @@ class Executor:
 
 # Import hooks here to avoid circular import
 from agent_runtime_framework.executor.hooks import ExecutorHooks
+
+# Backwards compatibility alias
+Executor = LLMExecutor

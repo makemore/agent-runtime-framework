@@ -10,6 +10,8 @@ A Python framework for building **journey-based conversational agents** with LLM
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **0.3.0** | 2025-01-23 | Renamed Executor to LLMExecutor for clarity (backwards compatible) |
+| **0.2.0** | 2025-01-15 | Added memory context management and prompt templates |
 | **0.1.0** | 2025-01-14 | Initial release - JourneyAgent, state management, Django adapter |
 
 ## 🎯 What is a Journey-Based Agent?
@@ -43,7 +45,7 @@ The framework is built around several core abstractions:
         └──────────────────┼──────────────────┘
                            ▼
                   ┌──────────────┐
-                  │  Executor    │
+                  │ LLMExecutor  │
                   │  (LLM Loop)  │
                   └──────────────┘
 ```
@@ -53,7 +55,7 @@ The framework is built around several core abstractions:
 - **`JourneyAgent`**: Base class for building step-driven conversational agents
 - **`BaseJourneyState`**: Manages journey state with step tracking and serialization
 - **`BaseJourneyTools`**: Tools that can modify state and trigger transitions
-- **`Executor`**: Handles the LLM interaction and tool execution loop
+- **`LLMExecutor`**: Handles the LLM interaction and tool execution loop
 - **`IntentRouter`**: Routes user intents to different journeys
 - **`MemoryStore`**: Persistence layer for state and conversation history
 - **`PromptManager`**: Step-based prompt management with templating
@@ -199,15 +201,17 @@ Each step in your journey can have:
 
 This creates a structured, predictable conversation flow.
 
-### Executor
+### LLMExecutor
 
-The `Executor` handles the core LLM interaction loop:
+The `LLMExecutor` handles the core LLM interaction loop:
 1. Send messages + available tools to LLM
 2. LLM responds with text or tool calls
 3. Execute tool calls and add results to messages
 4. Repeat until LLM returns text or max iterations reached
 
-You typically don't use the Executor directly - `JourneyAgent` uses it internally.
+You typically don't use the LLMExecutor directly - `JourneyAgent` uses it internally.
+
+**Note:** This is different from `agent_runtime_core.steps.StepExecutor`, which is for multi-step workflows with checkpointing.
 
 ## 🔧 Advanced Features
 
@@ -381,7 +385,7 @@ prompt = prompts.get(MyStep.WELCOME, name="Alice", step="welcome")
 Observe and log execution events:
 
 ```python
-from agent_runtime_framework import ExecutorHooks, LoggingHooks
+from agent_runtime_framework import LLMExecutor, ExecutorHooks, LoggingHooks
 
 class MyHooks(ExecutorHooks):
     async def on_tool_start(self, name: str, arguments: dict) -> None:
@@ -390,7 +394,7 @@ class MyHooks(ExecutorHooks):
     async def on_tool_end(self, name: str, result: str) -> None:
         print(f"✅ Tool completed: {name}")
 
-executor = Executor(
+executor = LLMExecutor(
     llm_client=my_llm,
     hooks=MyHooks(),
 )
@@ -524,14 +528,14 @@ schema = (
 )
 ```
 
-#### `Executor`
+#### `LLMExecutor`
 Core execution loop for LLM + tool interactions.
 
 ```python
-executor = Executor(
+executor = LLMExecutor(
     llm_client=my_llm,
     tool_executor=MethodToolExecutor(tools),
-    config=ExecutorConfig(max_iterations=10),
+    config=LLMExecutorConfig(max_iterations=10),
     hooks=MyHooks(),
 )
 

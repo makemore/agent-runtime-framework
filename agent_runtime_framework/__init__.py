@@ -34,12 +34,16 @@ from agent_runtime_framework.agents import (
     AgentResult,
 )
 from agent_runtime_framework.executor import (
-    Executor,
+    LLMExecutor,
+    LLMExecutorConfig,
     ExecutorHooks,
     CompositeHooks,
     ToolExecutor,
     CallableToolExecutor,
     MethodToolExecutor,
+    # Backwards compatibility
+    Executor,
+    ExecutorConfig,
 )
 from agent_runtime_framework.memory import (
     MemoryStore,
@@ -61,7 +65,7 @@ from agent_runtime_framework.router import (
     RouteDefinition,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     # Configuration
@@ -86,8 +90,13 @@ __all__ = [
     "AgentContext",
     "AgentMessage",
     "AgentResult",
-    # Executor
+    # Executor (new names)
+    "LLMExecutor",
+    "LLMExecutorConfig",
+    # Executor (backwards compatibility)
     "Executor",
+    "ExecutorConfig",
+    # Executor (common)
     "ExecutorHooks",
     "CompositeHooks",
     "ToolExecutor",
